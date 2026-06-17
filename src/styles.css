@@ -1,0 +1,56 @@
+:root {
+  color-scheme: dark;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #102016;
+  color: #f7f1df;
+}
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; background:
+  radial-gradient(circle at top left, rgba(130, 195, 105, .28), transparent 28rem),
+  linear-gradient(135deg, #0c1d13 0%, #1f4d2b 44%, #6a4a25 100%); }
+button { font: inherit; }
+.app-shell { width: min(1180px, 100%); margin: 0 auto; padding: clamp(16px, 3vw, 36px); }
+.glass { background: rgba(16, 32, 22, .72); border: 1px solid rgba(245, 238, 210, .16); box-shadow: 0 18px 60px rgba(0,0,0,.28); backdrop-filter: blur(16px); border-radius: 28px; }
+.hero { min-height: 360px; display: grid; grid-template-columns: 1fr 230px; gap: 28px; padding: clamp(22px, 5vw, 52px); align-items: center; position: relative; overflow: hidden; }
+.hero:after { content: ''; position: absolute; inset: auto -15% -40% 25%; height: 220px; background: rgba(242, 180, 83, .18); filter: blur(50px); transform: rotate(-8deg); }
+.eyebrow, .hero-actions, .section-title { display: flex; align-items: center; gap: 9px; }
+.eyebrow { color: #bfe0a9; text-transform: uppercase; letter-spacing: .12em; font-size: .78rem; font-weight: 800; }
+h1 { font-size: clamp(3.2rem, 9vw, 7.3rem); line-height: .82; margin: 12px 0 20px; letter-spacing: -.08em; text-shadow: 0 10px 30px rgba(0,0,0,.4); }
+.hero-copy { max-width: 720px; color: #f1e8ca; font-size: clamp(1rem, 2vw, 1.25rem); line-height: 1.65; }
+.hero-actions { flex-wrap: wrap; margin-top: 26px; }
+.hero-actions button { border: 0; padding: 14px 18px; border-radius: 999px; background: #e2a241; color: #172215; font-weight: 900; display: inline-flex; align-items: center; gap: 9px; cursor: pointer; box-shadow: 0 12px 28px rgba(0,0,0,.28); }
+.hero-actions span { color: #d8efc1; font-weight: 700; }
+.compass-card { aspect-ratio: 1; border-radius: 50%; background: linear-gradient(145deg, rgba(244,237,220,.16), rgba(29,69,39,.65)); display: grid; place-items: center; text-align: center; padding: 28px; border: 1px solid rgba(255,255,255,.22); z-index: 1; }
+.compass-card svg { color: #f3bd5b; filter: drop-shadow(0 8px 12px rgba(0,0,0,.4)); }
+.compass-card strong, .compass-card span { display: block; }
+.status-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 18px 0; }
+.metric { padding: 20px; min-height: 156px; display: grid; align-content: space-between; }
+.metric svg { color: #e2a241; }
+.metric span, .muted, .metric small, footer { color: #d4c9a8; }
+.metric strong { font-size: clamp(1.8rem, 4vw, 2.65rem); letter-spacing: -.06em; }
+.main-grid { display: grid; grid-template-columns: 1.05fr .95fr; gap: 18px; align-items: stretch; }
+.trail-map { grid-row: span 2; padding: 22px; min-height: 680px; }
+.section-title { color: #f3bd5b; font-weight: 950; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 16px; }
+.trail-map svg { width: 100%; height: 560px; background: linear-gradient(180deg, rgba(191,224,169,.1), rgba(106,74,37,.18)); border-radius: 20px; border: 1px solid rgba(255,255,255,.08); }
+.terrain { fill: none; stroke: #e2a241; stroke-width: 9; stroke-linecap: round; filter: drop-shadow(0 8px 10px rgba(0,0,0,.35)); }
+.pin circle { fill: #bfe0a9; stroke: #112317; stroke-width: 3; }
+.pin text { fill: #fff5d6; font-size: 10px; font-weight: 800; paint-order: stroke; stroke: rgba(0,0,0,.5); stroke-width: 3; }
+.progress { height: 12px; background: rgba(255,255,255,.1); border-radius: 999px; overflow: hidden; margin-top: 16px; }
+.progress span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #bfe0a9, #e2a241); }
+.panel { padding: 22px; }
+.location-readout { display: grid; gap: 10px; margin-top: 18px; }
+.location-readout code, .placeholder-sensor { padding: 13px 14px; background: rgba(0,0,0,.25); border-radius: 14px; color: #e8f6d6; border: 1px solid rgba(255,255,255,.08); }
+.waypoints article { padding: 12px 0; border-top: 1px solid rgba(255,255,255,.09); display: grid; gap: 5px; }
+.waypoints span { color: #d4c9a8; }
+.manual-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.manual-grid article { padding: 15px; background: rgba(255,255,255,.07); border-radius: 18px; min-height: 150px; }
+.manual-grid svg { color: #bfe0a9; }
+.manual-grid p { color: #d4c9a8; line-height: 1.45; }
+.feeds { margin-top: 18px; padding: 22px; }
+.feed-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+.feed { padding: 14px; border-radius: 18px; background: rgba(255,255,255,.07); display: grid; gap: 8px; }
+.feed svg { color: #e2a241; }
+.feed span { color: #d4c9a8; font-size: .9rem; }
+footer { text-align: center; padding: 28px 10px 8px; }
+@media (max-width: 900px) { .hero, .main-grid { grid-template-columns: 1fr; } .compass-card { width: 180px; justify-self: center; } .status-grid, .feed-grid { grid-template-columns: repeat(2, 1fr); } .trail-map { min-height: auto; } }
+@media (max-width: 520px) { .app-shell { padding: 10px; } .hero, .panel, .feeds, .trail-map { border-radius: 22px; padding: 18px; } h1 { font-size: 4.2rem; } .status-grid, .manual-grid, .feed-grid { grid-template-columns: 1fr; } .trail-map svg { height: 440px; } }
