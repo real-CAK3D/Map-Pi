@@ -1,200 +1,302 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { AlertTriangle, Bluetooth, Camera, Compass, Database, GitBranch, MapPin, Mountain, Navigation, RadioTower, Route, Satellite, Send, ShieldAlert, TentTree, ThermometerSun, Upload, Users, Wifi, Droplets, Flame, Leaf, LocateFixed } from 'lucide-react';
+import { Activity, AlertTriangle, Backpack, Bluetooth, Camera, Compass, Database, Droplets, Flag, GitBranch, Home, Leaf, ListChecks, LocateFixed, Map, MapPin, Mountain, Navigation, Play, RotateCcw, Save, Send, Settings, ShieldAlert, Square, TentTree, ThermometerSun, Upload, Users, Wifi } from 'lucide-react';
 import './styles.css';
 
-const waypoints = [
-  { type: 'Start', name: 'Springer Mountain', mile: 0, detail: 'Southern terminus — shake down gear, set baseline.' },
-  { type: 'Water', name: 'Stover Creek', mile: 2.8, detail: 'Early water check + filter routine.' },
-  { type: 'Shelter', name: 'Hawk Mountain Shelter', mile: 8.1, detail: 'First camp / shelter waypoint.' },
-  { type: 'Road', name: 'Hightower Gap', mile: 8.6, detail: 'Road crossing / rescue reference.' },
-  { type: 'Vista', name: 'Blood Mountain', mile: 29.7, detail: 'Elevation/weather caution zone.' },
-  { type: 'Town', name: 'Neel Gap', mile: 31.3, detail: 'Resupply and gear audit.' },
-];
+const AT_MILES = 2197.4;
 
-const manuals = [
-  { icon: TentTree, title: 'Fast Camp Setup', text: 'Pick high, durable ground. Check widowmakers, water flow, and wind before pitching.' },
-  { icon: Flame, title: 'Safe Fire Routine', text: 'Use existing rings, clear duff, keep water nearby, cold-out before sleep. Follow local bans.' },
-  { icon: Droplets, title: 'Water Discipline', text: 'Log source, filter method, liters carried, next known source, and backup purification.' },
-  { icon: Leaf, title: 'Plant ID Guardrail', text: 'AI can assist, not certify. Never eat a plant from model output alone. Confirm with field guide.' },
-];
-
-const dataFeeds = [
-  ['GPS module', 'pending hardware', Satellite],
-  ['Phone geolocation', 'available now', LocateFixed],
-  ['Supabase sync', 'planned', Database],
-  ['GitHub repo', 'planned', GitBranch],
-  ['Ollama helper', 'remote/local-network preferred', RadioTower],
-  ['Bluetooth sensors', 'optional later', Bluetooth],
-];
+const AREAS = {
+  georgia: {
+    label: 'Georgia starter route',
+    trail: 'Appalachian Trail',
+    description: 'Springer Mountain to Neel Gap shakedown stretch.',
+    waypoints: [
+      { id: 'springer', type: 'Start', name: 'Springer Mountain', mile: 0, lat: 34.6274, lon: -84.1933, detail: 'Southern terminus. Start plaque and baseline check.' },
+      { id: 'stover', type: 'Water', name: 'Stover Creek', mile: 2.8, lat: 34.6512, lon: -84.1667, detail: 'Water/filter checkpoint.' },
+      { id: 'hawk', type: 'Shelter', name: 'Hawk Mountain Shelter', mile: 8.1, lat: 34.6851, lon: -84.1103, detail: 'Camp/shelter waypoint.' },
+      { id: 'hightower', type: 'Road', name: 'Hightower Gap', mile: 8.6, lat: 34.6898, lon: -84.1014, detail: 'Road crossing and bailout reference.' },
+      { id: 'gooch', type: 'Shelter', name: 'Gooch Mountain Shelter', mile: 15.8, lat: 34.7294, lon: -84.0151, detail: 'Shelter and rest point.' },
+      { id: 'woody', type: 'Road', name: 'Woody Gap', mile: 20.5, lat: 34.6776, lon: -83.9996, detail: 'Road crossing / possible pickup.' },
+      { id: 'blood', type: 'Vista', name: 'Blood Mountain', mile: 29.7, lat: 34.7398, lon: -83.9361, detail: 'High point, weather caution.' },
+      { id: 'neel', type: 'Town', name: 'Neel Gap', mile: 31.3, lat: 34.7354, lon: -83.9182, detail: 'Resupply and gear audit.' },
+    ],
+  },
+  nc: {
+    label: 'North Carolina approach',
+    trail: 'Appalachian Trail',
+    description: 'Georgia line to Franklin/Nantahala planning slice.',
+    waypoints: [
+      { id: 'bly', type: 'Border', name: 'GA/NC Line', mile: 78.2, lat: 34.9877, lon: -83.5606, detail: 'State line milestone.' },
+      { id: 'muskrat', type: 'Shelter', name: 'Muskrat Creek Shelter', mile: 81.4, lat: 35.0181, lon: -83.5485, detail: 'Shelter after border climb.' },
+      { id: 'standing', type: 'Mountain', name: 'Standing Indian', mile: 86.4, lat: 35.0340, lon: -83.5273, detail: 'Elevation/weather checkpoint.' },
+      { id: 'rock-gap', type: 'Road', name: 'Rock Gap', mile: 105.5, lat: 35.0929, lon: -83.5015, detail: 'Road access near Franklin.' },
+      { id: 'winding', type: 'Road', name: 'Winding Stair Gap', mile: 109.5, lat: 35.1216, lon: -83.5459, detail: 'Franklin shuttle/drop option.' },
+    ],
+  },
+  smoky: {
+    label: 'Smokies planning slice',
+    trail: 'Appalachian Trail',
+    description: 'Fontana Dam to Newfound Gap high-weather route.',
+    waypoints: [
+      { id: 'fontana', type: 'Dam', name: 'Fontana Dam', mile: 164.7, lat: 35.4500, lon: -83.8051, detail: 'Permit/weather prep.' },
+      { id: 'mollies', type: 'Shelter', name: 'Mollies Ridge Shelter', mile: 176.7, lat: 35.5741, lon: -83.7481, detail: 'Shelter and bear protocol.' },
+      { id: 'derrick', type: 'Shelter', name: 'Derrick Knob Shelter', mile: 189.1, lat: 35.6205, lon: -83.6504, detail: 'High ridge sleep option.' },
+      { id: 'clingmans', type: 'Summit', name: 'Clingmans Dome', mile: 199.6, lat: 35.5629, lon: -83.4985, detail: 'Major altitude/weather point.' },
+      { id: 'newfound', type: 'Road', name: 'Newfound Gap', mile: 207.7, lat: 35.6118, lon: -83.4249, detail: 'Road crossing and exit option.' },
+    ],
+  },
+};
 
 const plantSources = [
   'Phone camera/photo upload over hotspot or Tailscale web UI',
-  'Offline guide pack: USDA PLANTS / Wikidata / GBIF taxonomy candidates',
+  'Offline guide pack candidates: USDA PLANTS, GBIF taxonomy, Wikidata facts, curated local notes',
   'Poison and edible warnings require multiple-source confirmation',
-  'Ollama vision should run on stronger local hardware when possible',
+  'Ollama vision should run on stronger local hardware when possible; Pi Zero can queue and display results',
 ];
 
-const dropLocations = [
-  { name: 'Neel Gap supply window', mile: 31.3, status: 'Open for requests', supplies: 'Food, socks, water tabs', eta: 'Signal queued until online' },
-  { name: 'Hiawassee shuttle board', mile: 69.2, status: 'Trail-hand planned', supplies: 'Fuel can, battery bank, first-aid', eta: 'Request drafts offline' },
-  { name: 'Franklin road crossing', mile: 109.5, status: 'Needs confirmation', supplies: 'Meal drop, dry bag swap', eta: 'Send when service returns' },
+const defaultDrops = [
+  { id: 'drop-neel', name: 'Neel Gap supply window', mile: 31.3, lat: 34.7354, lon: -83.9182, status: 'Open for requests', supplies: 'Food, socks, water tabs', eta: 'Signal queued until online' },
+  { id: 'drop-hiawassee', name: 'Hiawassee shuttle board', mile: 69.2, lat: 34.9496, lon: -83.7577, status: 'Trail-hand planned', supplies: 'Fuel can, battery bank, first-aid', eta: 'Request drafts offline' },
+  { id: 'drop-franklin', name: 'Franklin road crossing', mile: 109.5, lat: 35.1216, lon: -83.5459, status: 'Needs confirmation', supplies: 'Meal drop, dry bag swap', eta: 'Send when service returns' },
 ];
 
-function useTrailStats(position) {
-  return useMemo(() => {
-    const totalMiles = 2197.4;
-    const simulatedMiles = position ? 0.2 : 14.6;
-    const percent = Math.min(100, (simulatedMiles / totalMiles) * 100);
-    return {
-      totalMiles,
-      traveled: simulatedMiles,
-      remaining: totalMiles - simulatedMiles,
-      percent,
-      elevation: position ? 'GPS altitude pending' : '3,782 ft mock',
-      temp: '61°F mock',
-      weather: 'Clear window · watch ridge wind',
-    };
-  }, [position]);
+const manualCards = [
+  { icon: TentTree, title: 'Fast Camp Setup', text: 'Pick high, durable ground. Check widowmakers, water flow, wind, and local rules before pitching.' },
+  { icon: FlameIcon, title: 'Safe Fire Routine', text: 'Use existing rings, clear duff, keep water nearby, follow bans, and cold-out before sleep.' },
+  { icon: Droplets, title: 'Water Discipline', text: 'Log source, filter method, liters carried, next known source, and backup purification.' },
+  { icon: Leaf, title: 'Plant ID Guardrail', text: 'AI can assist, not certify. Never eat a plant from model output alone.' },
+];
+
+function FlameIcon(props) {
+  return <span className="emoji-icon" {...props}>🔥</span>;
+}
+
+function useStoredState(key, initial) {
+  const [value, setValue] = useState(() => {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : initial;
+    } catch {
+      return initial;
+    }
+  });
+  useEffect(() => {
+    localStorage.setItem(key, JSON.stringify(value));
+  }, [key, value]);
+  return [value, setValue];
+}
+
+function toRad(deg) { return (deg * Math.PI) / 180; }
+function haversineMiles(a, b) {
+  if (!a || !b || Number.isNaN(a.lat) || Number.isNaN(a.lon) || Number.isNaN(b.lat) || Number.isNaN(b.lon)) return null;
+  const R = 3958.8;
+  const dLat = toRad(b.lat - a.lat);
+  const dLon = toRad(b.lon - a.lon);
+  const lat1 = toRad(a.lat);
+  const lat2 = toRad(b.lat);
+  const x = Math.sin(dLat/2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon/2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(x));
+}
+function fmtMiles(value, units = 'miles') {
+  if (value == null) return '—';
+  if (units === 'km') return `${(value * 1.60934).toFixed(2)} km`;
+  return `${value.toFixed(2)} mi`;
+}
+function parseCoord(text) {
+  const parts = text.split(',').map(v => Number(v.trim()));
+  if (parts.length !== 2 || parts.some(Number.isNaN)) return null;
+  return { lat: parts[0], lon: parts[1] };
+}
+function routeDistance(waypoints) {
+  return waypoints.slice(1).reduce((sum, wp, i) => sum + (haversineMiles(waypoints[i], wp) || 0), 0);
 }
 
 function App() {
+  const [activeTab, setActiveTab] = useStoredState('mapPi.activeTab', 'dashboard');
+  const [settings, setSettings] = useStoredState('mapPi.settings', {
+    units: 'miles', paceMph: 2.2, autoEndRadiusMiles: 0.12, theme: 'forest', gpsSource: 'phone', hikerName: 'CAK3D', offlineMode: true,
+  });
+  const [planner, setPlanner] = useStoredState('mapPi.planner', {
+    area: 'georgia', direction: 'northbound', startId: 'springer', endId: 'neel', destinationMode: 'dropdown', destinationId: 'neel', destinationName: '', coordText: '', notes: '', selectedMapId: 'neel',
+  });
+  const [hike, setHike] = useStoredState('mapPi.hike', { active: false, startedAt: null, endedAt: null, completed: false, requestQueue: [] });
+  const [manualPosition, setManualPosition] = useStoredState('mapPi.manualPosition', { lat: 34.6274, lon: -84.1933, label: 'Springer Mountain manual start' });
   const [position, setPosition] = useState(null);
-  const [geoStatus, setGeoStatus] = useState('Idle — use phone browser location for early testing.');
+  const [geoStatus, setGeoStatus] = useState('Idle — use phone GPS or manual coordinates.');
   const [plantPhoto, setPlantPhoto] = useState(null);
   const [queuedRequest, setQueuedRequest] = useState('');
-  const stats = useTrailStats(position);
 
-  const handlePlantPhoto = (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    setPlantPhoto({ name: file.name, size: `${Math.round(file.size / 1024)} KB`, type: file.type || 'photo' });
-  };
+  const area = AREAS[planner.area] || AREAS.georgia;
+  const ordered = planner.direction === 'southbound' ? [...area.waypoints].reverse() : area.waypoints;
+  const startIdx = Math.max(0, ordered.findIndex(w => w.id === planner.startId));
+  const endIdxRaw = ordered.findIndex(w => w.id === planner.endId);
+  const endIdx = endIdxRaw >= 0 ? endIdxRaw : ordered.length - 1;
+  const low = Math.min(startIdx, endIdx);
+  const high = Math.max(startIdx, endIdx);
+  const route = ordered.slice(low, high + 1);
+  const current = position || manualPosition;
+  const destination = useMemo(() => {
+    if (planner.destinationMode === 'coords') return parseCoord(planner.coordText) ? { ...parseCoord(planner.coordText), name: planner.destinationName || 'Custom coordinate destination', type: 'Custom' } : null;
+    if (planner.destinationMode === 'map') return area.waypoints.find(w => w.id === planner.selectedMapId) || route.at(-1);
+    if (planner.destinationMode === 'name') {
+      const match = area.waypoints.find(w => w.name.toLowerCase().includes(planner.destinationName.toLowerCase()));
+      return match || (planner.destinationName ? { name: planner.destinationName, lat: current.lat, lon: current.lon, type: 'Named note' } : route.at(-1));
+    }
+    return area.waypoints.find(w => w.id === planner.destinationId) || route.at(-1);
+  }, [planner, area.waypoints, route, current]);
+
+  const navigation = useMemo(() => {
+    const distances = route.map(w => ({ ...w, distance: haversineMiles(current, w) ?? Infinity }));
+    const nearest = distances.reduce((best, item, idx) => item.distance < best.distance ? { ...item, idx } : best, { distance: Infinity, idx: 0 });
+    const next = distances.find((_, idx) => idx > nearest.idx) || distances.at(-1);
+    const last = [...distances].reverse().find((_, rIdx) => (distances.length - 1 - rIdx) < nearest.idx) || distances[0];
+    const toDestination = haversineMiles(current, destination);
+    const routeMiles = routeDistance(route);
+    const completedByMile = Math.max(0, ((nearest.mile || route[0]?.mile || 0) - (route[0]?.mile || 0)));
+    const routeTrailMiles = Math.max(0.01, Math.abs((route.at(-1)?.mile || 0) - (route[0]?.mile || 0)));
+    const progress = Math.min(100, Math.max(0, (completedByMile / routeTrailMiles) * 100));
+    return { nearest, next, last, toDestination, routeMiles, progress };
+  }, [route, current, destination]);
+
+  useEffect(() => {
+    if (hike.active && destination && navigation.toDestination != null && navigation.toDestination <= Number(settings.autoEndRadiusMiles)) {
+      setHike(h => ({ ...h, active: false, endedAt: new Date().toISOString(), completed: true }));
+      setGeoStatus(`Destination reached within ${settings.autoEndRadiusMiles} mi. Hike auto-ended.`);
+    }
+  }, [navigation.toDestination, destination, hike.active, settings.autoEndRadiusMiles, setHike]);
+
+  const setPlannerPatch = (patch) => setPlanner(prev => ({ ...prev, ...patch }));
+  const setSettingsPatch = (patch) => setSettings(prev => ({ ...prev, ...patch }));
 
   const getLocation = () => {
-    if (!navigator.geolocation) {
-      setGeoStatus('Browser geolocation is not available on this device.');
-      return;
-    }
+    if (!navigator.geolocation) return setGeoStatus('Browser geolocation is not available on this device.');
     setGeoStatus('Requesting phone GPS permission…');
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setPosition({
-          lat: pos.coords.latitude,
-          lon: pos.coords.longitude,
-          accuracy: pos.coords.accuracy,
-          altitude: pos.coords.altitude,
-          timestamp: new Date(pos.timestamp).toLocaleTimeString(),
-        });
-        setGeoStatus('Live phone location locked. Pi GPS module can plug into this same data model later.');
+        setPosition({ lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy, label: 'Phone GPS', timestamp: new Date(pos.timestamp).toLocaleTimeString() });
+        setGeoStatus('Live phone location locked.');
       },
       (err) => setGeoStatus(`Location unavailable: ${err.message}`),
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 }
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 5000 }
     );
   };
+  const useManualCoords = () => {
+    const parsed = parseCoord(planner.coordText);
+    if (!parsed) return setGeoStatus('Manual coordinate format should be: 34.6274, -84.1933');
+    setManualPosition({ ...parsed, label: planner.destinationName || 'Manual coordinate' });
+    setPosition(null);
+    setGeoStatus('Manual coordinates set as current position.');
+  };
+  const startHike = () => setHike(h => ({ ...h, active: true, startedAt: new Date().toISOString(), endedAt: null, completed: false }));
+  const endHike = () => setHike(h => ({ ...h, active: false, endedAt: new Date().toISOString(), completed: false }));
+  const resetHike = () => setHike(h => ({ ...h, active: false, startedAt: null, endedAt: null, completed: false }));
+  const handlePlantPhoto = (event) => {
+    const file = event.target.files?.[0];
+    if (file) setPlantPhoto({ name: file.name, size: `${Math.round(file.size / 1024)} KB`, type: file.type || 'photo' });
+  };
+  const queueSupplyRequest = () => {
+    if (!queuedRequest.trim()) return;
+    setHike(h => ({ ...h, requestQueue: [...(h.requestQueue || []), { id: Date.now(), text: queuedRequest.trim(), destination: destination?.name || 'Current route', createdAt: new Date().toLocaleString(), status: 'Queued offline' }] }));
+    setQueuedRequest('');
+  };
 
-  return (
-    <main className="app-shell">
-      <section className="hero glass">
-        <div>
-          <p className="eyebrow"><MapPin size={16}/> CAK3D Appalachian Trail System</p>
-          <h1>Map-Pi Trail Buddy</h1>
-          <p className="hero-copy">A phone-first, Pi-ready trail command center for miles, camps, water, weather, GPS, and field notes — built to grow into the Raspberry Pi Zero 2 WH kit.</p>
-          <div className="hero-actions">
-            <button onClick={getLocation}><Navigation size={18}/> Lock phone GPS</button>
-            <span><Wifi size={16}/> Tailscale / hotspot display path</span>
-          </div>
-        </div>
-        <div className="compass-card">
-          <Compass size={52}/>
-          <strong>Northbound Mode</strong>
-          <span>Prototype v0.1</span>
-        </div>
-      </section>
+  const tabs = [
+    ['dashboard', 'Dashboard', Activity], ['planner', 'Planner', Map], ['navigate', 'Navigate', Navigation], ['waypoints', 'Waypoints', ListChecks], ['drops', 'Drops', Users], ['plant', 'Plant ID', Leaf], ['settings', 'Settings', Settings],
+  ];
 
-      <section className="status-grid">
-        <Metric icon={Route} label="Miles traveled" value={`${stats.traveled.toFixed(1)} mi`} sub={`${stats.remaining.toFixed(1)} mi remaining`} />
-        <Metric icon={Mountain} label="AT progress" value={`${stats.percent.toFixed(2)}%`} sub="Springer → Katahdin" />
-        <Metric icon={ThermometerSun} label="Temp / weather" value={stats.temp} sub={stats.weather} />
-        <Metric icon={Satellite} label="Altitude" value={stats.elevation} sub="GPS + elevation API later" />
-      </section>
+  return <main className={`app-shell theme-${settings.theme}`}>
+    <header className="app-header glass">
+      <div><p className="eyebrow"><MapPin size={16}/> Map-Pi Appalachian Trail System</p><h1>Trail Buddy</h1><p>{area.label} · {planner.direction} · {hike.active ? 'Hike active' : hike.completed ? 'Destination reached' : 'Planning mode'}</p></div>
+      <div className="status-pill"><Wifi size={16}/> Tailscale ready</div>
+    </header>
 
-      <section className="main-grid">
-        <div className="trail-map glass">
-          <div className="section-title"><Route/> Trail ribbon</div>
-          <svg viewBox="0 0 320 520" role="img" aria-label="Stylized Appalachian Trail route">
-            <path className="terrain" d="M36 486 C88 430,58 384,124 334 C196 278,96 230,184 164 C232 128,206 74,284 34" />
-            {waypoints.map((w, i) => {
-              const pts = [[36,486],[84,420],[122,334],[166,256],[184,164],[236,92]];
-              const [x,y] = pts[i];
-              return <g key={w.name} className="pin"><circle cx={x} cy={y} r="8"/><text x={x+14} y={y+4}>{w.mile} mi · {w.name}</text></g>
-            })}
-          </svg>
-          <div className="progress"><span style={{width: `${Math.max(4, stats.percent)}%`}} /></div>
-        </div>
+    <nav className="tab-bar glass">{tabs.map(([id, label, Icon]) => <button key={id} className={activeTab === id ? 'active' : ''} onClick={() => setActiveTab(id)}><Icon size={17}/><span>{label}</span></button>)}</nav>
 
-        <div className="panel glass">
-          <div className="section-title"><LocateFixed/> Live location</div>
-          <p className="muted">{geoStatus}</p>
-          {position ? <div className="location-readout">
-            <code>lat: {position.lat.toFixed(6)}</code>
-            <code>lon: {position.lon.toFixed(6)}</code>
-            <code>accuracy: ±{Math.round(position.accuracy)}m</code>
-            <code>time: {position.timestamp}</code>
-          </div> : <div className="placeholder-sensor">Waiting for phone GPS or future Pi serial GPS feed…</div>}
-        </div>
+    {activeTab === 'dashboard' && <Dashboard settings={settings} area={area} route={route} hike={hike} current={current} destination={destination} navigation={navigation} setActiveTab={setActiveTab} />}
+    {activeTab === 'planner' && <Planner area={area} ordered={ordered} route={route} planner={planner} setPlannerPatch={setPlannerPatch} destination={destination} navigation={navigation} useManualCoords={useManualCoords} />}
+    {activeTab === 'navigate' && <Navigate settings={settings} route={route} hike={hike} current={current} destination={destination} navigation={navigation} geoStatus={geoStatus} getLocation={getLocation} startHike={startHike} endHike={endHike} resetHike={resetHike} setManualPosition={setManualPosition} />}
+    {activeTab === 'waypoints' && <Waypoints settings={settings} route={route} current={current} navigation={navigation} setPlannerPatch={setPlannerPatch} setManualPosition={setManualPosition} setActiveTab={setActiveTab} />}
+    {activeTab === 'drops' && <Drops drops={defaultDrops} queuedRequest={queuedRequest} setQueuedRequest={setQueuedRequest} queueSupplyRequest={queueSupplyRequest} requestQueue={hike.requestQueue || []} destination={destination} />}
+    {activeTab === 'plant' && <Plant plantPhoto={plantPhoto} handlePlantPhoto={handlePlantPhoto} />}
+    {activeTab === 'settings' && <SettingsPage settings={settings} setSettingsPatch={setSettingsPatch} planner={planner} setPlannerPatch={setPlannerPatch} hike={hike} setHike={setHike} />}
 
-        <div className="panel glass waypoints">
-          <div className="section-title"><MapPin/> Waypoints</div>
-          {waypoints.map(w => <article key={w.name}><strong>{w.type}: {w.name}</strong><span>Mile {w.mile} — {w.detail}</span></article>)}
-        </div>
-
-        <div className="panel glass">
-          <div className="section-title"><ShieldAlert/> Camp + safety manuals</div>
-          <div className="manual-grid">{manuals.map(({icon: Icon, title, text}) => <article key={title}><Icon/><strong>{title}</strong><p>{text}</p></article>)}</div>
-        </div>
-      </section>
-
-      <section className="field-grid">
-        <div className="panel glass plant-lab">
-          <div className="section-title"><Camera/> Plant photo triage</div>
-          <p className="muted">Upload from the phone camera over the app/hotspot first. Bluetooth file transfer can be a fallback, but the web upload path will be cleaner for trail use.</p>
-          <label className="upload-box">
-            <Upload/>
-            <span>{plantPhoto ? `${plantPhoto.name} · ${plantPhoto.size}` : 'Choose a plant photo'}</span>
-            <input type="file" accept="image/*" capture="environment" onChange={handlePlantPhoto} />
-          </label>
-          <div className="safety-callout"><AlertTriangle/> Never eat from AI output alone. Map-Pi will return confidence, lookalikes, poisonous warnings, and “do not consume” by default when uncertain.</div>
-          <ul>{plantSources.map(source => <li key={source}>{source}</li>)}</ul>
-        </div>
-
-        <div className="panel glass drops-panel">
-          <div className="section-title"><Users/> Trail-hand supply drops</div>
-          <p className="muted">Meet-up spots can be visible on the hike. Requests should queue offline and send later through cellular/Wi-Fi/Supabase when service returns.</p>
-          <div className="request-row">
-            <input value={queuedRequest} onChange={(e) => setQueuedRequest(e.target.value)} placeholder="Request food, fuel, socks, water tabs…" />
-            <button><Send size={16}/> Queue</button>
-          </div>
-          {dropLocations.map(drop => <article className="drop-card" key={drop.name}>
-            <strong>{drop.name}</strong>
-            <span>Mile {drop.mile} · {drop.status}</span>
-            <p>{drop.supplies}</p>
-            <small>{drop.eta}</small>
-          </article>)}
-        </div>
-      </section>
-
-      <section className="feeds glass">
-        <div className="section-title"><RadioTower/> Architecture-ready feeds</div>
-        <div className="feed-grid">{dataFeeds.map(([name,status,Icon]) => <div className="feed" key={name}><Icon size={20}/><strong>{name}</strong><span>{status}</span></div>)}</div>
-      </section>
-
-      <footer>Map-Pi runs as a web app first: phone screen now, Pi display later. Bluetooth can join the hike after Wi-Fi does the heavy lifting.</footer>
-    </main>
-  );
+    <footer>Phone/PWA now, Pi display later. GPS module plugs into the same current-position model when the hardware lands.</footer>
+  </main>;
 }
 
-function Metric({icon: Icon, label, value, sub}) {
+function Dashboard({ settings, area, route, hike, current, destination, navigation, setActiveTab }) {
+  return <section className="page-grid">
+    <Metric icon={Flag} label="Selected route" value={`${route[0]?.name} → ${route.at(-1)?.name}`} sub={area.description} />
+    <Metric icon={Navigation} label="To destination" value={fmtMiles(navigation.toDestination, settings.units)} sub={destination?.name || 'No destination'} />
+    <Metric icon={MapPin} label="Next waypoint" value={navigation.next?.name || '—'} sub={fmtMiles(navigation.next?.distance, settings.units)} />
+    <Metric icon={Home} label="Last waypoint" value={navigation.last?.name || '—'} sub={fmtMiles(navigation.last?.distance, settings.units)} />
+    <section className="trail-map glass wide">
+      <div className="section-title"><Map/> Route overview</div>
+      <RouteMap route={route} current={current} destination={destination} onPick={(wp) => {}} />
+      <div className="progress"><span style={{ width: `${navigation.progress}%` }} /></div>
+    </section>
+    <section className="panel glass">
+      <div className="section-title"><Compass/> Quick actions</div>
+      <button className="primary" onClick={() => setActiveTab('planner')}>Plan destination</button>
+      <button className="secondary" onClick={() => setActiveTab('navigate')}>Open navigation</button>
+      <p className="muted">Hike state: {hike.active ? `Started ${new Date(hike.startedAt).toLocaleString()}` : hike.endedAt ? `Ended ${new Date(hike.endedAt).toLocaleString()}` : 'Not started'}</p>
+    </section>
+  </section>;
+}
+
+function Planner({ area, ordered, route, planner, setPlannerPatch, destination, navigation, useManualCoords }) {
+  return <section className="page-grid two-col">
+    <section className="panel glass">
+      <div className="section-title"><Map/> Route planner</div>
+      <label>Selected area<select value={planner.area} onChange={e => setPlannerPatch({ area: e.target.value, startId: AREAS[e.target.value].waypoints[0].id, endId: AREAS[e.target.value].waypoints.at(-1).id, destinationId: AREAS[e.target.value].waypoints.at(-1).id, selectedMapId: AREAS[e.target.value].waypoints.at(-1).id })}>{Object.entries(AREAS).map(([id, a]) => <option key={id} value={id}>{a.label}</option>)}</select></label>
+      <label>Direction<select value={planner.direction} onChange={e => setPlannerPatch({ direction: e.target.value })}><option value="northbound">Northbound</option><option value="southbound">Southbound</option></select></label>
+      <label>Start waypoint<select value={planner.startId} onChange={e => setPlannerPatch({ startId: e.target.value })}>{ordered.map(w => <option key={w.id} value={w.id}>{w.mile} · {w.name}</option>)}</select></label>
+      <label>End waypoint<select value={planner.endId} onChange={e => setPlannerPatch({ endId: e.target.value, destinationId: e.target.value })}>{ordered.map(w => <option key={w.id} value={w.id}>{w.mile} · {w.name}</option>)}</select></label>
+      <div className="mini-stats"><span>Route points: {route.length}</span><span>Trail miles: {Math.abs((route.at(-1)?.mile || 0) - (route[0]?.mile || 0)).toFixed(1)}</span><span>GPS estimate: {fmtMiles(navigation.routeMiles)}</span></div>
+    </section>
+    <section className="panel glass">
+      <div className="section-title"><Flag/> Destination input</div>
+      <label>Destination mode<select value={planner.destinationMode} onChange={e => setPlannerPatch({ destinationMode: e.target.value })}><option value="dropdown">Dropdown waypoint</option><option value="coords">Coordinates</option><option value="name">Name search/note</option><option value="map">Choice on map</option></select></label>
+      {planner.destinationMode === 'dropdown' && <label>Destination<select value={planner.destinationId} onChange={e => setPlannerPatch({ destinationId: e.target.value })}>{area.waypoints.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}</select></label>}
+      {(planner.destinationMode === 'coords' || planner.destinationMode === 'name') && <><label>Name<input value={planner.destinationName} onChange={e => setPlannerPatch({ destinationName: e.target.value })} placeholder="Camp, road, water source…" /></label>{planner.destinationMode === 'coords' && <label>Coordinates<input value={planner.coordText} onChange={e => setPlannerPatch({ coordText: e.target.value })} placeholder="34.6274, -84.1933" /></label>}<button className="secondary" onClick={useManualCoords}>Use coordinates as current position</button></>}
+      <div className="chosen-destination"><strong>Chosen:</strong> {destination?.name || 'Invalid coordinate'} · {fmtMiles(navigation.toDestination)}</div>
+    </section>
+    <section className="trail-map glass full-row"><div className="section-title"><MapPin/> Choose on map</div><RouteMap route={area.waypoints} destination={destination} onPick={(wp) => setPlannerPatch({ selectedMapId: wp.id, destinationMode: 'map' })} /></section>
+  </section>;
+}
+
+function Navigate({ settings, route, hike, current, destination, navigation, geoStatus, getLocation, startHike, endHike, resetHike, setManualPosition }) {
+  return <section className="page-grid">
+    <Metric icon={LocateFixed} label="Current position" value={current.label || 'Manual/GPS'} sub={`${Number(current.lat).toFixed(4)}, ${Number(current.lon).toFixed(4)}`} />
+    <Metric icon={Navigation} label="Distance to next" value={fmtMiles(navigation.next?.distance, settings.units)} sub={navigation.next?.name} />
+    <Metric icon={Home} label="Distance to last" value={fmtMiles(navigation.last?.distance, settings.units)} sub={navigation.last?.name} />
+    <Metric icon={Flag} label="Distance to destination" value={fmtMiles(navigation.toDestination, settings.units)} sub={destination?.name} />
+    <section className="panel glass wide"><div className="section-title"><Activity/> Hike controls</div><p className="muted">{geoStatus}</p><div className="button-row"><button className="primary" onClick={getLocation}><LocateFixed size={16}/> Use phone GPS</button><button className="primary" onClick={startHike} disabled={hike.active}><Play size={16}/> Start hike</button><button className="danger" onClick={endHike} disabled={!hike.active}><Square size={16}/> End hike</button><button className="secondary" onClick={resetHike}><RotateCcw size={16}/> Reset</button></div></section>
+    <section className="panel glass"><div className="section-title"><ListChecks/> Route queue</div>{route.map(w => <button className="waypoint-button" key={w.id} onClick={() => setManualPosition({ lat: w.lat, lon: w.lon, label: w.name })}><strong>{w.name}</strong><span>{w.type} · mile {w.mile}</span></button>)}</section>
+  </section>;
+}
+
+function Waypoints({ settings, route, current, navigation, setPlannerPatch, setManualPosition, setActiveTab }) {
+  return <section className="panel glass"><div className="section-title"><ListChecks/> Waypoints</div><div className="waypoint-list">{route.map((w) => <article key={w.id} className={navigation.nearest?.id === w.id ? 'nearest waypoint-card' : 'waypoint-card'}><div><strong>{w.type}: {w.name}</strong><span>Mile {w.mile} · {w.detail}</span><small>From current: {fmtMiles(haversineMiles(current, w), settings.units)}</small></div><div className="card-actions"><button onClick={() => { setPlannerPatch({ destinationMode: 'dropdown', destinationId: w.id }); setActiveTab('navigate'); }}>Navigate</button><button onClick={() => setManualPosition({ lat: w.lat, lon: w.lon, label: w.name })}>Set current</button></div></article>)}</div></section>;
+}
+
+function Drops({ drops, queuedRequest, setQueuedRequest, queueSupplyRequest, requestQueue, destination }) {
+  return <section className="page-grid two-col"><section className="panel glass"><div className="section-title"><Users/> Trail-hand supply drops</div><p className="muted">Requests queue offline and can sync to Supabase/SMS later when service returns.</p><div className="request-row"><input value={queuedRequest} onChange={(e) => setQueuedRequest(e.target.value)} placeholder={`Request supplies near ${destination?.name || 'destination'}…`} /><button onClick={queueSupplyRequest}><Send size={16}/> Queue</button></div>{drops.map(drop => <article className="drop-card" key={drop.id}><strong>{drop.name}</strong><span>Mile {drop.mile} · {drop.status}</span><p>{drop.supplies}</p><small>{drop.eta}</small></article>)}</section><section className="panel glass"><div className="section-title"><Backpack/> Queued requests</div>{requestQueue.length ? requestQueue.map(r => <article className="drop-card" key={r.id}><strong>{r.text}</strong><span>{r.destination}</span><small>{r.status} · {r.createdAt}</small></article>) : <p className="muted">No requests queued yet.</p>}</section></section>;
+}
+
+function Plant({ plantPhoto, handlePlantPhoto }) {
+  return <section className="page-grid two-col"><section className="panel glass plant-lab"><div className="section-title"><Camera/> Plant photo triage</div><p className="muted">Upload from the phone camera over HTTPS/Tailscale or hotspot. Bluetooth file transfer can be a fallback later.</p><label className="upload-box"><Upload/><span>{plantPhoto ? `${plantPhoto.name} · ${plantPhoto.size}` : 'Choose a plant photo'}</span><input type="file" accept="image/*" capture="environment" onChange={handlePlantPhoto} /></label><div className="safety-callout"><AlertTriangle/> Never eat from AI output alone. Map-Pi will return confidence, lookalikes, poisonous warnings, and “do not consume” by default when uncertain.</div></section><section className="panel glass"><div className="section-title"><Database/> Free data strategy</div><ul className="info-list">{plantSources.map(source => <li key={source}>{source}</li>)}</ul></section></section>;
+}
+
+function SettingsPage({ settings, setSettingsPatch, planner, setPlannerPatch, hike, setHike }) {
+  return <section className="page-grid two-col"><section className="panel glass"><div className="section-title"><Settings/> Preferences</div><label>Hiker name<input value={settings.hikerName} onChange={e => setSettingsPatch({ hikerName: e.target.value })} /></label><label>Units<select value={settings.units} onChange={e => setSettingsPatch({ units: e.target.value })}><option value="miles">Miles</option><option value="km">Kilometers</option></select></label><label>Expected pace mph<input type="number" step="0.1" value={settings.paceMph} onChange={e => setSettingsPatch({ paceMph: Number(e.target.value) })} /></label><label>Auto-end radius miles<input type="number" step="0.01" value={settings.autoEndRadiusMiles} onChange={e => setSettingsPatch({ autoEndRadiusMiles: Number(e.target.value) })} /></label><label>Theme<select value={settings.theme} onChange={e => setSettingsPatch({ theme: e.target.value })}><option value="forest">Forest</option><option value="ember">Ember</option><option value="night">Night</option></select></label></section><section className="panel glass"><div className="section-title"><Save/> Local data</div><p className="muted">Settings, route, hike state, and queued requests persist in this browser with localStorage.</p><button className="danger" onClick={() => { localStorage.clear(); setHike({ active: false, startedAt: null, endedAt: null, completed: false, requestQueue: [] }); }}>Clear local app data</button><textarea value={planner.notes} onChange={e => setPlannerPatch({ notes: e.target.value })} placeholder="Trail notes, gear reminders, water reports…" /></section></section>;
+}
+
+function RouteMap({ route, current, destination, onPick }) {
+  return <div className="map-choice"><svg viewBox="0 0 360 520" role="img" aria-label="Interactive route map"> <path className="terrain" d="M42 486 C98 430,66 384,136 334 C208 278,105 230,195 164 C244 128,218 74,310 34" />{route.map((w, i) => { const t = route.length === 1 ? 0 : i / (route.length - 1); const x = 42 + t * 268 + Math.sin(t * 12) * 28; const y = 486 - t * 452 + Math.cos(t * 9) * 18; const isDest = destination?.id === w.id || destination?.name === w.name; return <g key={w.id} className={`pin ${isDest ? 'dest' : ''}`} onClick={() => onPick?.(w)}><circle cx={x} cy={y} r={isDest ? 11 : 8}/><text x={x+14} y={y+4}>{w.mile} · {w.name}</text></g>; })}</svg><div className="map-buttons">{route.map(w => <button key={w.id} onClick={() => onPick?.(w)}>{w.name}</button>)}</div></div>;
+}
+
+function Metric({ icon: Icon, label, value, sub }) {
   return <article className="metric glass"><Icon/><span>{label}</span><strong>{value}</strong><small>{sub}</small></article>;
 }
 
