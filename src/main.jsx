@@ -45,6 +45,56 @@ const AREAS = {
       { id: 'newfound', type: 'Road', name: 'Newfound Gap', mile: 207.7, lat: 35.6118, lon: -83.4249, detail: 'Road crossing and exit option.' },
     ],
   },
+  nhMaine: {
+    label: 'New Hampshire → Katahdin overview',
+    trail: 'Appalachian Trail',
+    description: 'High-level NH and Maine route spine for northbound planning.',
+    waypoints: [
+      { id: 'hanover', type: 'Town', name: 'Hanover, NH', mile: 1749.0, lat: 43.7048, lon: -72.2297, detail: 'NH entry trail town and resupply.' },
+      { id: 'moosilauke', type: 'Summit', name: 'Mount Moosilauke', mile: 1793.0, lat: 44.0245, lon: -71.8309, detail: 'Major White Mountains climb; weather check.' },
+      { id: 'kinsman-notch', type: 'Road', name: 'Kinsman Notch / NH 112', mile: 1803.0, lat: 44.0437, lon: -71.7926, detail: 'Road crossing and access point.' },
+      { id: 'franconia', type: 'Notch', name: 'Franconia Notch', mile: 1820.0, lat: 44.1444, lon: -71.6910, detail: 'Major road/access corridor.' },
+      { id: 'garfield', type: 'Shelter', name: 'Garfield Ridge area', mile: 1831.0, lat: 44.1876, lon: -71.6102, detail: 'Ridge shelter area; exposed weather.' },
+      { id: 'crawford', type: 'Road', name: 'Crawford Notch', mile: 1850.0, lat: 44.2170, lon: -71.4110, detail: 'Road crossing and exit option.' },
+      { id: 'mt-washington', type: 'Summit', name: 'Mount Washington', mile: 1859.0, lat: 44.2705, lon: -71.3033, detail: 'Extreme weather checkpoint.' },
+      { id: 'pinkham', type: 'Visitor Center', name: 'Pinkham Notch', mile: 1874.0, lat: 44.2576, lon: -71.2537, detail: 'Visitor center/resupply access.' },
+      { id: 'gorham', type: 'Town', name: 'Gorham / Rattle River', mile: 1891.0, lat: 44.4580, lon: -71.0844, detail: 'Town access before Mahoosucs.' },
+      { id: 'maine-border', type: 'Border', name: 'NH / Maine border', mile: 1906.0, lat: 44.4980, lon: -71.0050, detail: 'State line into the Mahoosuc range.' },
+      { id: 'mahoosuc-notch', type: 'Notch', name: 'Mahoosuc Notch', mile: 1910.0, lat: 44.5385, lon: -70.9892, detail: 'Slow boulder notch; plan extra time.' },
+      { id: 'speck-pond-overview', type: 'Pond/Shelter', name: 'Speck Pond', mile: 1917.0, lat: 44.5637, lon: -70.9734, detail: 'Pond/shelter area near Old Speck.' },
+      { id: 'grafton-26-overview', type: 'Road', name: 'Route 26 / Grafton Notch', mile: 1923.0, lat: 44.5935, lon: -70.9466, detail: 'ME 26 road crossing and parking/access.' },
+      { id: 'rangeley', type: 'Town Access', name: 'Rangeley area', mile: 1970.0, lat: 44.8480, lon: -70.6826, detail: 'Maine town/resupply access region.' },
+      { id: 'monson', type: 'Town', name: 'Monson', mile: 2075.0, lat: 45.2978, lon: -69.5409, detail: 'Last major trail town before the 100-Mile Wilderness.' },
+      { id: 'katahdin', type: 'Terminus', name: 'Katahdin / Baxter Peak', mile: 2197.4, lat: 45.9044, lon: -68.9213, detail: 'Northern terminus.' },
+    ],
+  },
+  graftonSpeck: {
+    label: 'Route 26 → Speck Pond field test',
+    trail: 'Appalachian Trail / Grafton Notch',
+    description: 'Short Maine test route for ME 26 / Grafton Notch to Old Speck and Speck Pond.',
+    waypoints: [
+      { id: 'rt26-grafton', type: 'Start/Road', name: 'Route 26 / Grafton Notch', mile: 0.0, lat: 44.5935, lon: -70.9466, detail: 'ME 26 trailhead/parking access. Good field-test start point.' },
+      { id: 'eyebrow-jct', type: 'Junction', name: 'Eyebrow Trail junction area', mile: 1.1, lat: 44.5865, lon: -70.9498, detail: 'Approximate junction area; confirm with blazes/map on trail.' },
+      { id: 'old-speck', type: 'Summit', name: 'Old Speck Mountain', mile: 3.5, lat: 44.5709, lon: -70.9536, detail: 'Major climb and weather/wind checkpoint.' },
+      { id: 'mahoosuc-arm', type: 'Mountain', name: 'Mahoosuc Arm', mile: 5.1, lat: 44.5606, lon: -70.9781, detail: 'Steep approach near Speck Pond; take it slow.' },
+      { id: 'speck-pond', type: 'Destination', name: 'Speck Pond', mile: 6.0, lat: 44.5637, lon: -70.9734, detail: 'Your near-term destination/test area. Pond/shelter coordinates from OSM/Nominatim.' },
+      { id: 'mahoosuc-notch-local', type: 'Notch', name: 'Mahoosuc Notch', mile: 7.4, lat: 44.5385, lon: -70.9892, detail: 'Optional beyond-Speck reference; slow boulder travel.' },
+    ],
+  },
+  maineNorth: {
+    label: 'Maine northbound to Katahdin',
+    trail: 'Appalachian Trail',
+    description: 'Maine-wide planning spine from Grafton Notch toward Baxter Peak.',
+    waypoints: [
+      { id: 'grafton-26-me', type: 'Road', name: 'Route 26 / Grafton Notch', mile: 1923.0, lat: 44.5935, lon: -70.9466, detail: 'ME 26 access after Speck/Old Speck area.' },
+      { id: 'andover', type: 'Town Access', name: 'Andover access area', mile: 1940.0, lat: 44.6348, lon: -70.7509, detail: 'Town access/resupply region.' },
+      { id: 'rangeley-me', type: 'Town Access', name: 'Rangeley area', mile: 1970.0, lat: 44.8480, lon: -70.6826, detail: 'Rangeley resupply/road access region.' },
+      { id: 'caratunk', type: 'Town Access', name: 'Caratunk / Kennebec crossing', mile: 2037.0, lat: 45.2306, lon: -69.9894, detail: 'Kennebec ferry/logistics checkpoint.' },
+      { id: 'monson-me', type: 'Town', name: 'Monson', mile: 2075.0, lat: 45.2978, lon: -69.5409, detail: 'Final major town before the 100-Mile Wilderness.' },
+      { id: 'abol-bridge', type: 'Camp/Store', name: 'Abol Bridge area', mile: 2182.0, lat: 45.8350, lon: -68.9910, detail: 'Baxter approach logistics.' },
+      { id: 'baxter-peak', type: 'Terminus', name: 'Katahdin / Baxter Peak', mile: 2197.4, lat: 45.9044, lon: -68.9213, detail: 'Northern terminus.' },
+    ],
+  },
 };
 
 const plantSources = [
@@ -117,10 +167,10 @@ function App() {
     units: 'miles', paceMph: 2.2, autoEndRadiusMiles: 0.12, theme: 'forest', gpsSource: 'phone', hikerName: 'CAK3D', offlineMode: true,
   });
   const [planner, setPlanner] = useStoredState('mapPi.planner', {
-    area: 'georgia', direction: 'northbound', startId: 'springer', endId: 'neel', destinationMode: 'dropdown', destinationId: 'neel', destinationName: '', coordText: '', notes: '', selectedMapId: 'neel',
+    area: 'graftonSpeck', direction: 'northbound', startId: 'rt26-grafton', endId: 'speck-pond', destinationMode: 'dropdown', destinationId: 'speck-pond', destinationName: '', coordText: '44.5637, -70.9734', notes: 'Field test: Route 26 / Grafton Notch to Speck Pond.', selectedMapId: 'speck-pond',
   });
   const [hike, setHike] = useStoredState('mapPi.hike', { active: false, startedAt: null, endedAt: null, completed: false, requestQueue: [] });
-  const [manualPosition, setManualPosition] = useStoredState('mapPi.manualPosition', { lat: 34.6274, lon: -84.1933, label: 'Springer Mountain manual start' });
+  const [manualPosition, setManualPosition] = useStoredState('mapPi.manualPosition', { lat: 44.5935, lon: -70.9466, label: 'Route 26 / Grafton Notch manual start' });
   const [position, setPosition] = useState(null);
   const [geoStatus, setGeoStatus] = useState('Idle — use phone GPS or manual coordinates.');
   const [plantPhoto, setPlantPhoto] = useState(null);
